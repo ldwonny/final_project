@@ -39,7 +39,21 @@ module top (
         .card1_out(card1_out),
         .card2_out(card2_out)
     );
-
+    
+    wire [3:0] dealer_card1_out;
+    wire [3:0] dealer_card2_out;
+    reg on1;
+    
+    card_generation Dealer_card_gen (
+        .clk(clk),
+        .reset(reset),
+        .on(on1),
+        .test(3'b000),
+        .card1_out(dealer_card1_out),
+        .card2_out(dealer_card2_out)
+    );
+    
+    
     // Define game phases
     reg [3:0] game_phases;
     reg double_check;
@@ -114,8 +128,12 @@ module top (
     always @(posedge next) begin
         // Dealer card setting
         if (game_phases == 0) begin
-            dealer_card1 = 1; // Hard-coded
-            dealer_card2 = 2;
+            on1 = 1;
+            #10;
+            dealer_card1 = dealer_card1_out; // 
+            dealer_card2 = dealer_card2_out;
+            on1 = 0;           
+            
             dealer_current_score = dealer_card1 + dealer_card2 + 10 * (dealer_card1 == 1 || dealer_card2 == 1);
             
             player_current_score = 0;   // "d" diplay
@@ -339,7 +357,10 @@ module top (
     always @(posedge clk) begin
         if (game_phases == 11) begin
             if (dealer_current_score < 17) begin
-                dealer_card1 = 2;    // Hard-coded
+                on1 = 1;
+                #10;
+                dealer_card1 = dealer_card1_out;    // edit;
+                on1 = 0;
                 
                 if (dealer_card1 == 1 && dealer_current_score < 11) begin
                      dealer_current_score = dealer_current_score + dealer_card1 + 10;
